@@ -12,12 +12,12 @@ Her er det varierande frå kva kabel du brukar. Du kan bruke DB0-seriellport på
 I seg sjølv er dette ikkje ein nettverkstilkopling.
 
 # Finne riktig port
-##Windows
+## Windows
 Finne riktig port må du inn på enhetsbehandling.  
 Enhetsbehandling -> Porter(COM og LPT) finn port med riktig tall, det er tallet eller namnet du oppgir i scriptet.
 ## Linux
 På Linux heiter ein innebygd seriellport /dev/ttyS<tall>. Om det er ein USB-adapter, står det /dev/ttyUSB0,1 osv.  
-Navngiving kan variere mellom Linux-distribusjonar, så ein må ta og sjekke, bruk kommando  
+Navngiving kan variere mellom Linux-distribusjonar, så ein må ta og sjekke, bruk kommando:   
 "dmesg | grep tty" for å sjekke kva som er riktig port.
 
 # Installasjon
