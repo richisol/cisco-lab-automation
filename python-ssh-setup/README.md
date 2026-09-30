@@ -8,7 +8,7 @@ Python 3, og biblioteket pyserial. Dette er det som faktisk lar Python snakke me
 
 # Fysisk tilkopling
 Det blir brukt ein kabel med RJ45 i eine enden(koplast til konsollporten på switch/router).  
-Her er det varierande frå kva kabel du brukar. Du kan bruke DB0-seriellport på PC, eller ein USB til seriell adapter.  
+Her er det varierande frå kva kabel du brukar. Du kan bruke DB9-seriellport på PC, eller ein USB til seriell adapter.  
 I seg sjølv er dette ikkje ein nettverkstilkopling.
 
 # Finne riktig port
