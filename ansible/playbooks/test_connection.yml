@@ -1,0 +1,11 @@
+---
+- name: Test tilkobling til Cisco-enheter
+  hosts: cisco_devices
+  gather_facts: no
+  tasks:
+    - name: Hent enhetsinfo
+      cisco.ios.ios_facts:
+
+    - name: Skriv ut hostname og IOS-versjon
+      debug:
+        msg: "{{ ansible_facts['net_hostname'] }} kjører {{ ansible_facts['net_version'] }}"

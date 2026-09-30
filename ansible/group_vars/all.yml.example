@@ -1,0 +1,7 @@
+ansible_connection: network_cli
+ansible_network_os: ios
+ansible_user: cisco
+ansible_password: "SETT_DITT_SSH_PASSORD_HER"
+ansible_become: yes
+ansible_become_method: enable
+ansible_become_password: "SETT_DITT_ENABLE_PASSORD_HER"
