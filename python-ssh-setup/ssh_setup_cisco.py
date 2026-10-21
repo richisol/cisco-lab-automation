@@ -103,11 +103,19 @@ def main():
     # Nyere IOS-XE (17.x) bruker 'ip domain name', eldre IOS 'ip domain-name'.
     # Prøv den nye først, og falle tilbake til den gamle hvis den blir avvist.
     out = send_command(ser, f"ip domain name {domain_name}")
-    if "%" in out:
+    if any(e in out for e in ("Invalid input", "Incomplete command", "Unrecognized")):
         send_command(ser, f"ip domain-name {domain_name}")
 
-    # Generer RSA-nøkkelpar (dette er det som faktisk aktiverer SSH på IOS)
-    send_command(ser, f"crypto key generate rsa modulus {key_modulus}", wait=5)
+    # Generer RSA-nøkkelpar (dette er det som faktisk aktiverer SSH på IOS).
+    # Store nøkler tar tid å lage (spesielt 2048 på eldre utstyr), så vi venter lenger.
+    keygen_wait = 25 if int(key_modulus) >= 2048 else 8
+    out = send_command(ser, f"crypto key generate rsa modulus {key_modulus}", wait=3)
+    if "yes/no" in out:
+        # Det finnes allerede en nøkkel: bekreft at den skal erstattes
+        send_command(ser, "yes", wait=keygen_wait)
+    else:
+        time.sleep(keygen_wait)
+        print(ser.read(ser.in_waiting or 1).decode(errors="ignore"))
 
     # Lokal bruker, enable-passord, og selve SSH-aktiveringen på vty-linjene
     send_command(ser, f"username {username} secret {password}")
@@ -155,6 +163,15 @@ def main():
             send_command(ser, f"ip route 0.0.0.0 0.0.0.0 {gateway}")
 
     send_command(ser, "end")
+
+    # Sjølvsjekk: er SSH faktisk aktivt? (scriptet ser ellers ikke om kommandoene feilet)
+    check = send_command(ser, "show ip ssh", wait=2)
+    if "SSH Enabled" in check:
+        print("\nOK: SSH er aktivt på enheten.")
+    else:
+        print("\nADVARSEL: SSH ser IKKE ut til å være aktivt ('SSH Disabled'). "
+              "Sjekk output over for feil på hostname, domenenavn eller RSA-nøkkel, "
+              "og kjør kommandoene manuelt ved behov.")
 
     # Valgfritt: lagre konfigurasjonen til flash
     save = input("\nLagre konfigurasjonen (write memory)? [j/n]: ").strip().lower()
