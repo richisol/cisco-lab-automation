@@ -1,32 +1,33 @@
 # SSH-oppsett via konsollkabel
 
-Scriptet automatiserar manuell oppsett gjennom terminal.  
-Eininga blir kopla til over den serielle konsollkabelen og sender IOS-kommandoane som setter opp SSH-tilgang, i staden for å taste inn manuelt.
+Scriptet automatiserer manuelt oppsett gjennom terminal.  
+Eininga blir kopla til over den serielle konsollkabelen og sender IOS-kommandoane som set opp SSH-tilgang, i staden for å taste dei inn manuelt.
 
 # Krav
-Python 3, og biblioteket pyserial. Dette er det som faktisk lar Python snakke med ein seriellport. Uten pyserial får ikkje Python kontakt med seriellportane.
+Python 3, og biblioteket pyserial. Dette er det som faktisk lar Python snakke med ein seriellport. Utan pyserial får ikkje Python kontakt med seriellportane.
 
 # Fysisk tilkopling
-Det blir brukt ein kabel med RJ45 i eine enden(koplast til konsollporten på switch/router).  
-Her er det varierande frå kva kabel du brukar. Du kan bruke DB9-seriellport på PC, eller ein USB til seriell adapter.  
+Det blir brukt ein kabel med RJ45 i eine enden (koplast til konsollporten på switch/router).  
+Her er det varierande kva kabel du brukar. Du kan bruke DB9-seriellport på PC, eller ein USB til seriell adapter.  
 I seg sjølv er dette ikkje ein nettverkstilkopling.
-## Instillingar
-9600 baud, 8 databit, ingen paritet, 1 stoppbit, 8N1
+
+## Innstillingar
+9600 baud, 8 databit, ingen paritet, 1 stoppbit (8N1)
 
 # Finne riktig port
 ## Windows
-For å finne riktig port må du inn på enhetsbehandling.  
-Enhetsbehandling -> Porter(COM og LPT) finn port med riktig tall, det er tallet eller namnet du oppgir i scriptet.
+For å finne riktig port må du inn på Enhetsbehandling.  
+Enhetsbehandling -> Porter (COM og LPT), finn porten med riktig tal. Det er talet eller namnet du oppgir i scriptet.
 ## Linux
-På Linux heiter ein innebygd seriellport /dev/ttyS<tall>. Om det er ein USB-adapter, står det /dev/ttyUSB0,1 osv.  
-Navngiving kan variere mellom Linux-distribusjonar, så ein må ta og sjekke, bruk kommando:   
+På Linux heiter ein innebygd seriellport /dev/ttyS<tal>. Om det er ein USB-adapter, står det /dev/ttyUSB0, 1 osv.  
+Namngiving kan variere mellom Linux-distribusjonar, så ein må sjekke. Bruk kommandoen:  
 "dmesg | grep tty" for å sjekke kva som er riktig port.
 
 # Installasjon
-Installer pyserial "pip install pyserial"
+Installer pyserial: `pip install pyserial`
 
 # Bruk
-Køyr `python ssh_setup_cisco.py`. Scriptet spør om dette, i denne rekkefølgja:
+Køyr `python ssh_setup_cisco.py`. Scriptet spør om dette, i denne rekkefølga:
 
 | Spørsmål | Døme | Forklaring |
 |---|---|---|
@@ -34,17 +35,17 @@ Køyr `python ssh_setup_cisco.py`. Scriptet spør om dette, i denne rekkefølgja
 | Baudrate | `9600` (Enter) | Farten på seriellforbindelsen. Må vere lik på begge sider. |
 | Hostname | `rs-r02` | Namnet eininga får |
 | Domenenamn | `richard.local` | Må finnast for at RSA-nøkkelen kan lagast |
-| SSH-brukarnamn | `cisco` | Brukarnamn som brukast til innlogging til SSH |
-| SSH-passord | (skjult) | Passord som brukast til innlogging til SSH |
-| Enable-passord | (skjult) | Passord ein treng for å komme inn i priviligert modus over SSH|
-| RSA-storleik | `2048` (Enter) | Størrelsen på RSA-nøkkelen , default er 2048|
-| Multilayer med `ip routing`? | `j` / `n` | Slår på ruting, så switchen kan sende trafikk mellom nettverk. Svar n på ruter og vanleg switch. |
-| Interface | `gi0/0/0`, `vlan 20` | Porten eller VLAN-et som skal få IP-adresse, til dømes gi0/0/0, eller vlan 20. |
+| SSH-brukarnamn | `cisco` | Brukarnamn som blir brukt til innlogging over SSH |
+| SSH-passord | (skjult) | Passord som blir brukt til innlogging over SSH |
+| Enable-passord | (skjult) | Passord ein treng for å komme inn i privilegert modus over SSH |
+| RSA-storleik | `2048` (Enter) | Storleiken på RSA-nøkkelen, standard er 2048 |
+| Multilayer med `ip routing`? | `j` / `n` | Slår på ruting, så switchen kan sende trafikk mellom nettverk. Svar `n` på ruter og vanleg switch. |
+| Interface | `gi0/0/0`, `vlan 20` | Porten eller VLAN-et som skal få IP-adresse, til dømes gi0/0/0 eller vlan 20. |
 | IP-adresse og maske | `172.16.1.2` / `255.255.255.252` | Adressa eininga får på interfacet, og storleiken på nettverket. |
 | Routa port (`no switchport`)? | `j` / `n` | Gjer ein fysisk port på multilayer-switch om til ein ruteport, så den kan ha IP-adresse. |
 | Default gateway | `172.16.1.1` | Adressa trafikk til andre nettverk blir sendt til. Trykk Enter om det ikkje trengs. |
-| Vanleg layer 2-switch? | `j` / `n` | Layer 2-switch brukar ip default-gateway, ruter og multilayer bruker ip route. Scriptet trenger å vite kva som gjeld |
-| Lagre (`write memory`)? | `j` | Lagrar konfigurasjonen, så den ikkje forsvinner ved omstart. |
+| Vanleg layer 2-switch? | `j` / `n` | Layer 2-switch brukar `ip default-gateway`, ruter og multilayer brukar `ip route`. Scriptet treng å vite kva som gjeld. |
+| Lagre (`write memory`)? | `j` | Lagrar konfigurasjonen, så den ikkje forsvinn ved omstart. |
 
 # Kva konfigurerer scriptet
 
@@ -115,21 +116,26 @@ VLAN og porter på switchen blir sette opp med Ansible.
 
 # Sjølvsjekk
 
-Til slutt køyrer scriptet `show ip ssh` på eininga og skriv ut `OK: SSH er aktivt på enheten`, eller ein `ADVARSEL`.
+Til slutt køyrer scriptet `show ip ssh` på eininga og skriv ut `OK: SSH er aktivt på enheten`, eller ein `ADVARSEL`.  
 Står det `ADVARSEL`, har noko feila på vegen. Sjå gjennom utskrifta frå scriptet etter feilmeldingar på hostname, domenenamn eller RSA-nøkkel. Køyr så dei same kommandoane manuelt i konsollen (for eksempel `crypto key generate rsa modulus 2048`) og sjekk med `show ip ssh` at det står `SSH Enabled`.
 
 # Teste SSH
-For å teste bruk: `ssh brukernamn@ip-adresse`
-## Ved feilmeldinger
-Eldre Cisco-einingar brukar gamle algoritmar som nye SSH-klientar har skrudd av. Då kan du få deil som `no matching key exhange method found`,`no matching cipher found`,`no matching MAC found`.  
-Løysninga er å tillate dei gamle algoritmane for lab-nettverket, til dømes i fila `^/.ssh/config`(på Windows `C:\Users\<namn>\.ssh\config`):
-Host 172.16.*
-KexAlgorithms +diffie-hellman-group14-sha1
-HostKeyAlgorithms +ssh-rsa
-Ciphers +aes128-cbc,aes256-cbc
-MACs +hmac-sha1
+For å teste bruk: `ssh brukarnamn@ip-adresse`
 
-Instillingane gjeld berre adressen som startar på `172.16.`.
+## Ved feilmeldingar
+Eldre Cisco-einingar brukar gamle algoritmar som nye SSH-klientar har skrudd av. Då kan du få feil som `no matching key exchange method found`, `no matching cipher found` eller `no matching MAC found`.  
+Løysinga er å tillate dei gamle algoritmane for lab-nettverket, til dømes i fila `~/.ssh/config` (på Windows `C:\Users\<namn>\.ssh\config`):
+
+```
+Host 172.16.*
+    KexAlgorithms +diffie-hellman-group14-sha1
+    HostKeyAlgorithms +ssh-rsa
+    Ciphers +aes128-cbc,aes256-cbc
+    MACs +hmac-sha1
+```
+
+Innstillingane gjeld berre adressene som startar på `172.16.`.
+
 # Avgrensingar
 
 - Scriptet set opp éi eining om gongen, over konsollkabel.
@@ -137,7 +143,7 @@ Instillingane gjeld berre adressen som startar på `172.16.`.
 - Scriptet sjekkar ikkje kvar enkelt kommando. Det er berre sjølvsjekken til slutt som viser om SSH er aktivt.
 - Eininga bør vere nullstilt. Scriptet svarar `no` på oppstartsdialogen som kjem etter nullstilling.
 - Scriptet set IP-adresser, men ikkje VLAN, trunk, HSRP eller DHCP. Det gjer Ansible.
+
 # Vidare
 
 Når SSH og IP-adresser er på plass, tek Ansible over og konfigurerer resten av nettverket (VLAN, ruting, HSRP og DHCP). Sjå mappa `ansible/` i repoet.
-
