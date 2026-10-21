@@ -1,0 +1,9 @@
+---
+# Multilayer-switch (Catalyst 3650)
+ip_routing: true
+
+# Statiske ruter. Rute nr. 2 er en reserve (distanse 10) som bare brukes
+# hvis rs-r02 faller ut. Fjern den linja hvis du ikke vil ha reserve.
+static_routes:
+  - { network: 172.16.20.0, mask: 255.255.255.0, next_hop: 172.16.1.2 }
+  - { network: 172.16.20.0, mask: 255.255.255.0, next_hop: 172.16.1.6, distance: 10 }

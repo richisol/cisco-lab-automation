@@ -1,0 +1,17 @@
+---
+# Felles variabler for hele STUD2-topologien.
+# Endre verdier HER, ikke inne i playbookene.
+# Variabler som er ulike per enhet (porter, IP-er, HSRP-prioritet, DHCP-område)
+# ligger i host_vars/<enhetsnavn>.yml.
+
+# VLAN som skal finnes på alle layer 2-switchene
+vlans:
+  - id: 20
+    name: VLAN20
+  # Flere VLAN legges til slik (husk å bruke samme id på begge lagene):
+  # - id: 30
+  #   name: VLAN30
+
+# DHCP-innstillinger som er like på alle routere
+dns_server: 8.8.8.8
+dhcp_lease: "0 8"        # "dager timer" - her 8 timer

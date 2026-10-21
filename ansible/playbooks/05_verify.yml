@@ -1,0 +1,46 @@
+---
+# Steg 5: Viser status fra enhetene, så du kan ta skjermbilde / sjekke at alt stemmer.
+- name: Sjekk routerne
+  hosts: routers
+  gather_facts: no
+  tasks:
+    - name: Hent status
+      cisco.ios.ios_command:
+        commands:
+          - show ip interface brief
+          - show standby brief
+          - show ip dhcp pool
+          - show ip route
+      register: result
+    - name: Vis
+      debug:
+        msg: "{{ result.stdout_lines | flatten }}"
+
+- name: Sjekk multilayer-switchen
+  hosts: switches_l3
+  gather_facts: no
+  tasks:
+    - name: Hent status
+      cisco.ios.ios_command:
+        commands:
+          - show ip interface brief
+          - show ip route
+      register: result
+    - name: Vis
+      debug:
+        msg: "{{ result.stdout_lines | flatten }}"
+
+- name: Sjekk layer 2-switchene
+  hosts: switches_l2
+  gather_facts: no
+  tasks:
+    - name: Hent status
+      cisco.ios.ios_command:
+        commands:
+          - show vlan brief
+          - show interfaces trunk
+          - show ip interface brief
+      register: result
+    - name: Vis
+      debug:
+        msg: "{{ result.stdout_lines | flatten }}"

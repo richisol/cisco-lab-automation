@@ -1,10 +1,13 @@
 ---
+# Tester at Ansible kommer inn på alle enhetene.
+#   ansible-playbook -i inventory.ini playbooks/test_connection.yml
 - name: Test tilkobling til Cisco-enheter
   hosts: cisco_devices
   gather_facts: no
   tasks:
     - name: Hent enhetsinfo
       cisco.ios.ios_facts:
+        gather_subset: min
 
     - name: Skriv ut hostname og IOS-versjon
       debug:

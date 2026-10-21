@@ -1,3 +1,7 @@
+# Kopier denne fila til all.yml (uten .example) og fyll inn ekte verdier.
+# all.yml er lagt til i .gitignore og skal ALDRI committes til det
+# offentlige repoet, siden den inneholder faktiske passord.
+
 ansible_connection: network_cli
 ansible_network_os: ios
 ansible_user: cisco
@@ -5,3 +9,10 @@ ansible_password: "SETT_DITT_SSH_PASSORD_HER"
 ansible_become: yes
 ansible_become_method: enable
 ansible_become_password: "SETT_DITT_ENABLE_PASSORD_HER"
+
+# Enhetene får ny SSH-nøkkel hver gang de nullstilles, så vi slår av
+# sjekken mot known_hosts (gjelder bare dette lab-nettverket).
+ansible_host_key_checking: false
+
+# Eldre switcher (2960) kan være trege, gi dem litt mer tid.
+ansible_command_timeout: 60

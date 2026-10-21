@@ -1,0 +1,19 @@
+---
+# Router (ISR 4221) - reserve HSRP-router (lavere prioritet)
+static_routes:
+  - { network: 0.0.0.0, mask: 0.0.0.0, next_hop: 172.16.1.5 }
+
+hsrp:
+  - interface: GigabitEthernet0/1
+    group: 20
+    vip: 172.16.20.254
+    priority: 100
+
+dhcp_pools:
+  - name: VLAN20
+    network: 172.16.20.0
+    netmask: 255.255.255.0
+    default_router: 172.16.20.254
+    excluded:
+      - { start: 172.16.20.1,   end: 172.16.20.149 }
+      - { start: 172.16.20.201, end: 172.16.20.254 }

@@ -1,0 +1,46 @@
+---
+# Steg 3: HSRP på routerne, og så peker switchene mot den virtuelle IP-en.
+# Leser 'hsrp' og 'default_gateway' fra host_vars/<enhet>.yml
+- name: HSRP på routerne
+  hosts: routers
+  gather_facts: no
+  tasks:
+    - name: Sett opp HSRP på interface
+      cisco.ios.ios_config:
+        parents: "interface {{ item.interface }}"
+        # Prioritet 100 er standard og vises ikke i running-config, så den sendes bare
+        # når den er noe annet (ellers ville playbooken meldt "changed" hver gang).
+        lines: >-
+          {{ ['standby ' ~ item.group ~ ' ip ' ~ item.vip]
+             + (['standby ' ~ item.group ~ ' priority ' ~ item.priority] if item.priority | int != 100 else [])
+             + ['standby ' ~ item.group ~ ' preempt'] }}
+      loop: "{{ hsrp | default([]) }}"
+      loop_control:
+        label: "{{ item.interface }} gruppe {{ item.group }}"
+
+    - name: Vent til HSRP er Active eller Standby
+      cisco.ios.ios_command:
+        commands:
+          - show standby brief
+        wait_for:
+          - 'result[0] matches "P\s+(Active|Standby)\s"'
+        retries: 12
+        interval: 5
+
+    - name: Lagre konfigurasjonen hvis den er endret
+      cisco.ios.ios_config:
+        save_when: modified
+
+- name: Switchene bruker HSRP-adressen som gateway
+  hosts: switches_l2
+  gather_facts: no
+  tasks:
+    - name: Sett default gateway til den virtuelle IP-en
+      cisco.ios.ios_config:
+        lines:
+          - "ip default-gateway {{ default_gateway }}"
+      when: default_gateway is defined
+
+    - name: Lagre konfigurasjonen hvis den er endret
+      cisco.ios.ios_config:
+        save_when: modified

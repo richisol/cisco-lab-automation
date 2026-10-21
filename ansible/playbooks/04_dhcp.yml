@@ -1,0 +1,33 @@
+---
+# Steg 4: DHCP på routerne, ett pool per VLAN.
+# Leser 'dhcp_pools' fra host_vars/<router>.yml og 'dns_server' / 'dhcp_lease'
+# fra vars/network.yml
+- name: DHCP på routerne
+  hosts: routers
+  gather_facts: no
+  vars_files:
+    - ../vars/network.yml
+  tasks:
+    - name: Ekskluder adresser som ikke skal deles ut
+      cisco.ios.ios_config:
+        lines:
+          - "ip dhcp excluded-address {{ item.1.start }} {{ item.1.end }}"
+      loop: "{{ dhcp_pools | default([]) | subelements('excluded') }}"
+      loop_control:
+        label: "{{ item.1.start }} - {{ item.1.end }}"
+
+    - name: Lag DHCP-pool per VLAN
+      cisco.ios.ios_config:
+        parents: "ip dhcp pool {{ item.name }}"
+        lines:
+          - "network {{ item.network }} {{ item.netmask }}"
+          - "default-router {{ item.default_router }}"
+          - "dns-server {{ dns_server }}"
+          - "lease {{ dhcp_lease }}"
+      loop: "{{ dhcp_pools | default([]) }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Lagre konfigurasjonen hvis den er endret
+      cisco.ios.ios_config:
+        save_when: modified

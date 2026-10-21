@@ -1,0 +1,18 @@
+---
+# Tar backup av running-config fra alle enheter i inventory.
+# Én fil per enhet lagres i mappa 'backups' (relativt til mappa du kjører fra).
+#
+# Kjør fra ansible/-mappa:
+#   ansible-playbook -i inventory.ini playbooks/backup_config.yml
+#
+# Filene inneholder hashede passord. 'backups/' ligger i .gitignore.
+- name: Backup av konfigurasjon fra alle Cisco-enheter
+  hosts: cisco_devices
+  gather_facts: no
+  tasks:
+    - name: Lagre running-config lokalt
+      cisco.ios.ios_config:
+        backup: yes
+        backup_options:
+          dir_path: backups
+          filename: "{{ inventory_hostname }}_{{ lookup('pipe', 'date +%Y-%m-%d_%H%M') }}.cfg"

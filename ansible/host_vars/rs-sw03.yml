@@ -1,0 +1,12 @@
+---
+# Catalyst 2960: Fa0/1 trunk opp til rs-sw04, Fa0/2 test-PC
+default_gateway: 172.16.20.254   # HSRP virtuell IP
+
+access_ports:
+  - vlan: 20
+    interfaces:
+      - FastEthernet0/2
+
+trunk_ports:
+  - interface: FastEthernet0/1
+    allowed_vlans: "20"

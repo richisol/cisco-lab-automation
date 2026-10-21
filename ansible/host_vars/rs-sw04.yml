@@ -1,0 +1,13 @@
+---
+# Catalyst 1000: Gi1/0/1 fra rs-r02, Gi1/0/2 fra rs-r04, Gi1/0/4 trunk til rs-sw03
+default_gateway: 172.16.20.254   # HSRP virtuell IP
+
+access_ports:
+  - vlan: 20
+    interfaces:
+      - GigabitEthernet1/0/1
+      - GigabitEthernet1/0/2
+
+trunk_ports:
+  - interface: GigabitEthernet1/0/4
+    allowed_vlans: "20"
