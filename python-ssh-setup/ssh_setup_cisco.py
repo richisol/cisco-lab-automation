@@ -5,6 +5,9 @@ Konfigurerer SSH-tilgang på en Cisco switch ELLER router via konsollkabel
 (seriell tilkobling) - samme script fungerer på begge, siden IOS-kommandoene
 for SSH-oppsett er identiske. Alle verdier (COM-port, hostname, brukernavn,
 passord osv.) hentes fra brukeren ved kjøring - ingenting er hardkodet.
+
+Støtter også multilayer-switch: valgfri 'ip routing', flere interfaces med
+IP-adresse, og routede porter (no switchport).
 """
 
 import serial
@@ -38,21 +41,40 @@ def main():
     # konsollet, men det holder ikke over nettverket).
     enable_secret = getpass.getpass("Enable-passord (for 'enable' over SSH): ")
 
-    key_modulus = input("RSA-nøkkelstørrelse [1024]: ").strip() or "1024"
+    key_modulus = input("RSA-nøkkelstørrelse [2048]: ").strip() or "2048"
 
-    # Valgfri IP-adressering - samme felt funker for switch (interface vlan 1)
-    # og router (f.eks interface GigabitEthernet0/0), siden det bare er et
-    # interface-navn som skrives inn.
-    configure_ip = input(
-        "Vil du også sette IP-adresse på et interface? [j/n]: "
+    # Valgfritt: multilayer-switch som skal rute mellom subnett
+    enable_routing = input(
+        "\nEr dette en multilayer-switch som skal rute ('ip routing')? [j/n]: "
     ).strip().lower() == "j"
 
-    if configure_ip:
-        interface_name = input(
-            "Interface (f.eks 'vlan 1' for switch, 'GigabitEthernet0/0' for router): "
+    # Valgfri IP-adressering. Du kan legge inn flere interfaces etter hverandre,
+    # siden multilayer-switch og routere ofte trenger flere IP-adresser.
+    interfaces = []
+    while input(
+        "\nVil du sette IP-adresse på et interface? [j/n]: "
+    ).strip().lower() == "j":
+        name = input(
+            "Interface (f.eks 'vlan 1', 'gi1/0/1' på switch, 'gi0/0/0' på router): "
         ).strip()
-        ip_address = input("IP-adresse: ").strip()
-        subnet_mask = input("Subnettmaske (f.eks 255.255.255.0): ").strip()
+        ip = input("IP-adresse: ").strip()
+        mask = input("Subnettmaske (f.eks 255.255.255.0): ").strip()
+        routed = input(
+            "Er dette en fysisk port på en multilayer-switch som skal være "
+            "routet port (no switchport)? [j/n]: "
+        ).strip().lower() == "j"
+        interfaces.append((name, ip, mask, routed))
+
+    # Valgfri default gateway. Uten den svarer ikke enheten på trafikk fra andre
+    # subnett (for eksempel SSH fra management-PC-en).
+    gateway = input(
+        "\nDefault gateway / neste hopp (Enter hvis ingen): "
+    ).strip()
+    is_layer2 = False
+    if gateway and not enable_routing:
+        is_layer2 = input(
+            "Er dette en vanlig layer 2-switch (ikke router eller multilayer)? [j/n]: "
+        ).strip().lower() == "j"
 
     # --- Åpne serieforbindelsen ---
     ser = serial.Serial(
@@ -78,7 +100,11 @@ def main():
 
     # Grunnleggende identitet - kreves før RSA-nøkkel kan genereres
     send_command(ser, f"hostname {hostname}")
-    send_command(ser, f"ip domain-name {domain_name}")
+    # Nyere IOS-XE (17.x) bruker 'ip domain name', eldre IOS 'ip domain-name'.
+    # Prøv den nye først, og falle tilbake til den gamle hvis den blir avvist.
+    out = send_command(ser, f"ip domain name {domain_name}")
+    if "%" in out:
+        send_command(ser, f"ip domain-name {domain_name}")
 
     # Generer RSA-nøkkelpar (dette er det som faktisk aktiverer SSH på IOS)
     send_command(ser, f"crypto key generate rsa modulus {key_modulus}", wait=5)
@@ -91,10 +117,18 @@ def main():
     send_command(ser, "transport input ssh")
     send_command(ser, "exit")
 
-    # IP-adressering, hvis brukeren ba om det
-    if configure_ip:
-        send_command(ser, f"interface {interface_name}")
-        send_command(ser, f"ip address {ip_address} {subnet_mask}")
+    # Multilayer-switch: slå på ruting før interfacene settes opp
+    if enable_routing:
+        send_command(ser, "ip routing")
+
+    # IP-adressering, ett interface om gangen
+    for name, ip, mask, routed in interfaces:
+        send_command(ser, f"interface {name}")
+        if routed:
+            # Fysiske porter på en multilayer-switch er switch-porter som
+            # standard og godtar ikke 'ip address' før de gjøres om til routet port.
+            send_command(ser, "no switchport")
+        send_command(ser, f"ip address {ip} {mask}")
         send_command(ser, "no shutdown")
         send_command(ser, "exit")
 
@@ -105,12 +139,20 @@ def main():
         # utdaterte oppføringen, ikke sikkerhetssjekken generelt.
         try:
             subprocess.run(
-                ["ssh-keygen", "-R", ip_address],
+                ["ssh-keygen", "-R", ip],
                 check=True, capture_output=True, text=True,
             )
-            print(f"Fjernet evt. gammel SSH-nøkkel for {ip_address} fra known_hosts.")
+            print(f"Fjernet evt. gammel SSH-nøkkel for {ip} fra known_hosts.")
         except Exception as e:
-            print(f"Kunne ikke automatisk rydde known_hosts for {ip_address}: {e}")
+            print(f"Kunne ikke automatisk rydde known_hosts for {ip}: {e}")
+
+    # Default gateway: layer 2-switch bruker 'ip default-gateway', mens router
+    # og multilayer-switch (med ip routing) bruker en default route.
+    if gateway:
+        if is_layer2:
+            send_command(ser, f"ip default-gateway {gateway}")
+        else:
+            send_command(ser, f"ip route 0.0.0.0 0.0.0.0 {gateway}")
 
     send_command(ser, "end")
 
