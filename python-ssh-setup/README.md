@@ -42,14 +42,12 @@ Køyr `python ssh_setup_cisco.py`. Scriptet spør om dette, i denne rekkefølgja
 | SSH-passord | (skjult) | Passord som brukast til innlogging til  |
 | Enable-passord | (skjult) | Passord ein treng for å komme inn i priviligert modus over SSH|
 | RSA-storleik | `2048` (Enter) | Størrelsen på RSA-nøkkelen , default er 2048|
-| Multilayer med `ip routing`? | `j` / `n` | Slår på ruting, så switchen kan sende trafikk  
-mellom nettverk. Svar n på ruter og vanleg switch. |
+| Multilayer med `ip routing`? | `j` / `n` | Slår på ruting, så switchen kan sende trafikk mellom nettverk. Svar n på ruter og vanleg switch. |
 | Interface | `gi0/0/0`, `vlan 20` | Porten eller VLAN-et som skal få IP-adresse, til dømes gi0/0/0, eller vlan 20. |
 | IP-adresse og maske | `172.16.1.2` / `255.255.255.252` | Adressa eininga får på interfacet, og storleiken på nettverket. |
 | Routa port (`no switchport`)? | `j` / `n` | Gjer ein fysisk port på multilayer-switch om til ein ruteport, så den kan ha IP-adresse. |
 | Default gateway | `172.16.1.1` | Adressa trafikk til andre nettverk blir sendt til. Trykk Enter om det ikkje trengs. |
-| Vanleg layer 2-switch? | `j` / `n` | Layer 2-switch brukar ip default-gateway, ruter og multilayer bruker  
-ip route. Sriptet trenger å vite kva som gjeld |
+| Vanleg layer 2-switch? | `j` / `n` | Layer 2-switch brukar ip default-gateway, ruter og multilayer bruker ip route. Sriptet trenger å vite kva som gjeld |
 | Lagre (`write memory`)? | `j` | Lagrar konfigurasjonen, så den ikkje forsvinner ved omstart. |
 
 # Kva konfigurerer scriptet
